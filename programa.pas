@@ -47,7 +47,7 @@ begin
   if (carta1.pontuacao_carta = valor_manilha) and (carta2.pontuacao_carta = valor_manilha) then
   begin
     if carta1.pontuacao_naipe > carta2.pontuacao_naipe then
-      compararCarta := 1;
+      compararCarta := 1
     else
       compararCarta := 0; 
   end
@@ -278,6 +278,50 @@ begin
     definirManilha := manilha;
 end;
 
+//Jogador Joga carta
+function jogador_joga_carta(var mao: TMao): TCarta;
+var
+  i, escolha: integer;
+begin
+  writeln;
+  writeln('--- SUA MAO ---');
+  
+  // Exibe as cartas que o jogador tem no momento
+  for i := 1 to mao.ponteiro do
+    writeln(i, ': ', mao.cartas[i].nome, ' de ', mao.cartas[i].naipe);
+  writeln('---------------');
+  
+  // Solicita a escolha do usuário baseada nos índices (1, 2 ou 3)
+  write('Escolha a carta (1 a ', mao.ponteiro, '): ');
+  readln(escolha);
+  
+  //Impede que o jogador escolha um número inexistente ou uma carta que já jogou
+  while (escolha < 1) or (escolha > mao.ponteiro) do
+  begin
+    write('Invalido! Escolha de 1 a ', mao.ponteiro, ': ');
+    readln(escolha);
+  end;
+  
+  // Chama a função que remove a carta da mão e reorganiza o array, retornando a carta escolhida
+  jogador_joga_carta := escolherCartaFromMao(mao, escolha);
+end;
+
+function bot_joga_carta(var mao: TMao): TCarta;
+var
+  escolha: integer;
+  carta: TCarta;
+begin
+  // O bot escolhe uma posição aleatória entre 1 e o número de cartas que ele tem
+  escolha := random(mao.ponteiro) + 1;
+  
+  // Remove a carta da mão do bot
+  carta := escolherCartaFromMao(mao, escolha);
+  
+  // Informa ao jogador qual foi a jogada do oponente
+  writeln('-> O Bot jogou: ', carta.nome, ' de ', carta.naipe);
+  bot_joga_carta := carta;
+end;
+
 procedure jogo(primeiro_jogador: integer);
 var
   rodada: TRodada;
@@ -286,50 +330,64 @@ var
   manilha: integer;
   i: integer;
   mao_jogador, mao_bot: TMao;
+  carta_jogador, carta_bot: TCarta;
 begin
-  partida.pontuacao_jogador_1 = 0;
-  partida.pontuacao_jogador_2 = 0;
-  rodada.anterior_empachou = false;
+  // Inicializa o placar da partida
+  partida.pontuacao_jogador_1 := 0;
+  partida.pontuacao_jogador_2 := 0;
+  rodada.anterior_empachou := false;
   rodada.primeiro_jogador := primeiro_jogador;
-  
+    
+  // O jogo continua até que alguém atinja 12 pontos
   while (partida.pontuacao_jogador_1 < 12) and (partida.pontuacao_jogador_2 < 12) do
   begin
-    rodada.valor_rodada := 1;
+    // Preparação de uma nova rodada: criar, embaralhar e cortar
     baralho := criarBaralho();
     embaralhar(baralho);
     cortarBaralho(baralho);
     
+    // Distribui 3 cartas para cada um e define a manilha da vez
     mao_jogador := definirMaoInicial(baralho);
     mao_bot := definirMaoInicial(baralho);
     manilha := definirManilha(baralho);
     
+    writeln;
+    writeln('*** NOVA RODADA | MANILHA DO VALOR: ', manilha, ' ***');
+    
+    // Cada rodada de Truco tem 3 "vazas" (turnos)
     for i := 1 to 3 do
     begin
+      // Define a ordem de quem joga primeiro baseada em quem ganhou a anterior
       if rodada.primeiro_jogador = 1 then
       begin
-        //jogador_joga_carta();
-        //bot_joga_carta();
+        carta_jogador := jogador_joga_carta(mao_jogador);
+        carta_bot := bot_joga_carta(mao_bot);
       end
       else
       begin
-        //bot_joga_carta()
-        //jogador_joga_carta()
+        carta_bot := bot_joga_carta(mao_bot);
+        carta_jogador := jogador_joga_carta(mao_jogador);
       end;
       
-      //carta_jogador =
-      //carta_bot
-      
+      // Compara as duas cartas jogadas e mostra o resultado da vaza
       if compararCarta(carta_jogador, carta_bot, manilha) = 1 then
-        //jogador ganhou a rodada
+        writeln('>> Voce ganhou esta vaza!')
+      else if compararCarta(carta_jogador, carta_bot, manilha) = 0 then
+        writeln('>> O Bot ganhou esta vaza!')
+      else
+        writeln('>> Empachou!');
     end;
+    
+    { Exemplo de pontuação para teste }
+    partida.pontuacao_jogador_1 := partida.pontuacao_jogador_1 + 1; 
+    writeln('Placar: Voce ', partida.pontuacao_jogador_1, ' x ', partida.pontuacao_jogador_2, ' Bot');
   end;
 end;
 
 var
-  primeiro_jogador: integer;
-  
+  primeiro: integer;
 begin
   randomize;
-    
-  primeiro_jogador := random(2) + 1;
+  primeiro := random(2) + 1;
+  jogo(primeiro);
 end.

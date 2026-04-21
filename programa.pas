@@ -65,13 +65,12 @@ begin
   end
   
   //Nenhuma é manilha: compara o valor das cartas e, em caso de empate, retorna -1
-  else
-  if carta1.pontuacao_carta = carta2.pontuacao_carta then
-    return -1
+  else if carta1.pontuacao_carta = carta2.pontuacao_carta then
+    compararCarta := -1
   else if carta1.pontuacao_carta > carta2.pontuacao_carta then
-    return 1
+    compararCarta := 1
   else if carta1.pontuacao_carta < carta2.pontuacao_carta then
-    return 0;
+    compararCarta := 0;
 end;
 
 function retirarCarta(var baralho: TBaralho): TCarta;
